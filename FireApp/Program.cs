@@ -1,3 +1,4 @@
+using FireApp.Services;
 using Hangfire;
 using Hangfire.Storage.SQLite;
 
@@ -14,6 +15,10 @@ builder.Services.AddHangfire(config => config
     .UseSimpleAssemblyNameTypeSerializer()
     .UseRecommendedSerializerSettings()
     .UseSQLiteStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
+
+builder.Services.AddTransient<IServiceManagement, ServiceManagement>();
 
 var app = builder.Build();
 
@@ -32,5 +37,7 @@ app.MapControllers();
 
 app.UseHangfireDashboard();
 app.MapHangfireDashboard();
+
+RecurringJob.AddOrUpdate<IServiceManagement>(x => x.SyncData(), "0 * * ? * *");
 
 app.Run();
